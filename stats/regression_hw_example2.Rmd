@@ -1,0 +1,339 @@
+---
+title: "STA 108, Homework 5"
+output: html_document
+---
+```{r setup, include=FALSE}
+library(leaps)
+``` 
+
+## Aiden Kutney, Lucas Ferns, Sam Rhinehart, Roman Vasilyev
+
+## 7.14a
+
+```{r, echo = FALSE}
+pt_data <- read.csv('sta108/615_Data.csv')
+full <- lm(satisfaction ~ age + severity + anxiety_lvl, data = pt_data)
+x1 <- lm(satisfaction ~ age, data = pt_data)
+x2 <- lm(satisfaction ~ severity, data = pt_data)
+x12 <- lm(satisfaction ~ age + severity, data = pt_data)
+x23 <- lm(satisfaction ~ severity + anxiety_lvl, data = pt_data)
+
+sse_x2 <- anova(x2)[2, 2]
+sse_x12 <- anova(x12)[3, 2]
+sse_x23 <- anova(x23)[3, 2]
+sse_full <- anova(full)[4, 2]
+Rsq1 <- summary(x1)[8]
+Rsq1bar2 <- (sse_x2 - sse_x12)/sse_x2
+```
+
+```{r}
+print(Rsq1)
+print(Rsq1bar2)
+```
+
+When ignoring X2, X1 explains (Rsq1bar2 \* 100) 45.79% of variance in patient satisfaction. 
+
+When ignoring X2 and X3, X1 explains (Rsq1bar23 \* 100) 40.21% of variance in patient satisfaction
+
+## 7.14b
+
+```{r, echo = FALSE}
+x2 <- lm(satisfaction ~ severity, data = pt_data)
+x13 <- lm(satisfaction ~ age + anxiety_lvl, data = pt_data)
+sse_x1 <- anova(x1)[2, 2]
+sse_x13 <- anova(x13)[3, 2]
+Rsq2 <- summary(x2)[8]
+Rsq2bar1 <- (sse_x1 - sse_x12)/sse_x1
+Rsq2bar13 <- (sse_x13 - sse_full)/sse_x13
+```
+
+```{r}
+print(Rsq2bar1)
+print(Rsq2bar13)
+```
+
+When ignoring X1, X2 explains (Rsq2bar1 \* 100) 9.44% of variance in patient satisfaction.
+
+When ignoring X1 and X3, X2 explains (Rsq2bar13 \* 100) 1.88% of variance in patient satisfaction
+
+## 7.26a
+
+Yhat = 156.6719 - 1.2677X1 - 0.9208X2
+
+## 7.26b
+
+Yhat = 158.491 - 1.142X1 - 0.442X2 - 13.470X3.
+
+We can see that since the X3 variable is added it changes the X1 and X2 coefficients. 
+
+We can also notice that the coefficient for X3 has a large magnitude, suggesting that X3 is significant explanatory variable.
+
+## 7.26c
+
+```{r, echo = FALSE}
+y_mean <- mean(pt_data$satisfaction)
+ssr_x1 <- sum((fitted(x1) - y_mean)^2)
+
+x3 <- lm(satisfaction ~ anxiety_lvl, data=pt_data)
+ssr_x1x3 <- sum((fitted(x13) - y_mean)^2)
+ssr_x3 <- sum((fitted(x3) - y_mean)^2)
+ssr_x1barx3 <- ssr_x1x3 - ssr_x3
+
+ssr_x2x3 <- sum((fitted(x23) - y_mean)^2)
+ssr_x2 <- sum((fitted(x2) - y_mean)^2)
+ssr_x2barx3 <- ssr_x2x3 - ssr_x3
+```
+
+```{r}
+print(ssr_x1)
+print(ssr_x1barx3)
+```
+
+SSRX1 does not equal SSRX1\|X3
+
+```{r}
+print(ssr_x2)
+print(ssr_x2barx3)
+```
+
+SSRX2 does not equal SSRX2\|X3
+
+## 7.26d
+
+```{r, echo=FALSE}
+corr_matrix <- cor(pt_data[, c("satisfaction", "age", "severity", "anxiety_lvl")])
+```
+
+```{r}
+print(corr_matrix)
+```
+
+## 7.28a
+1) SSRX5|X1 = SSRX1X5 - SSRX1
+2) SSRX3X4|X1 = SSRX1X3X4 - SSRX1
+3) SSRX4|X1X2X3 = (SSRX1-4) - SSRX1X2X3
+
+## 7.28b
+SSRX5|X1X2X3X4, SSRX2X4|X1X3X5
+
+## 7.29a
+SSRX2X3|X1 = SSRX1X2X3 - SSRX1
+
+SSRX4|X1X2X3 = SSRX1X2X3X4 - SSRX1X2X3
+
+
+SSRX1X2X3X4 = SSRX1 + (SSRX1X2X3 - SSRX1) + (SSRX1X2X3X4 - SSRX1X2X3)
+            = SSRX1X2X3X4
+
+## 7.29b
+SSRX1|X2X3 = SSRX1X2X3 - SSRX2X3
+
+SSRX4|X1X2X3 = SSRX1X2X3X4 - SSRX1X2X3
+
+SSRX1X2X3X4 = SSRX2X3 + (SSRX1X2X3 - SSRX2X3) + (SSRX1X2X3X4 - SSRX1X2X3)
+            = SSRX1X2X3X4
+
+## 8.6a
+```{r, echo=FALSE}
+ster_data <- read.table('sta108/hw5/CH08PR06.txt', header=TRUE)
+ster_data <- ster_data[order(ster_data$X), ]
+#adding centered x col
+ster_data$Xc <- ster_data$X - mean(ster_data$X)
+fit <- lm(Y ~ Xc + I(Xc^2), data=ster_data)
+```
+Y= 21.0942 + 1.1374x - 0.1184x^2
+
+R^2 = 0.8143 
+
+It seems to be a good fit since R2 is quite high
+
+## 8.6b
+H0 = b1 = b11 = 0, y = 21.0942
+
+Ha = b1 or b11 != 0, full
+```{r, echo=FALSE}
+anova(fit)
+sse_red <- sum((ster_data$Y - mean(ster_data$Y))^2)
+sse_full <- anova(fit)[3,2]
+ssr <- sse_red - sse_full
+msr <- ssr/2 # df = -beta param estimated in reduced + beta param estimated full
+mse <- anova(fit)[3, 3]
+f_stat <- msr/mse
+f_crit <- qf(0.01, 2, 24,lower.tail = FALSE)
+```
+```{r}
+print(f_stat)
+print(f_crit)
+
+#Pvalue
+print(pf(f_stat, 2, 24, lower.tail = FALSE))
+```
+Since f_stat > f_crit reject null hypothesis. 
+
+## 8.6d
+```{r, echo=FALSE}
+b <- coef(fit)
+x_val <- 15
+x_bar <- mean(ster_data$X)
+x_c <- x_val - x_bar
+Xh <- matrix(c(1, x_c, x_c^2), nrow = 1)
+
+X <- as.matrix(cbind(1, ster_data$Xc, ster_data$Xc^2))
+
+XTXinv <- solve(t(X) %*% X)
+
+var_b <- mse * XTXinv
+
+y_hat <- Xh %*% matrix(b, ncol=1)
+var_yhath <- Xh %*% var_b %*% t(Xh)
+
+s_pred <- sqrt(var_yhath + mse)
+
+t_crit <- qt(0.995, df = 27-3)  # df = n - p
+lower_pred <- y_hat - t_crit * s_pred
+upper_pred <- y_hat + t_crit * s_pred
+```
+```{r}
+print(y_hat)
+print(s_pred)
+print(lower_pred)
+print(upper_pred)
+```
+
+## 8.6e
+null: b11 = 0
+alt: b0 != 0
+```{r, echo=FALSE}
+sd_b11 <-sqrt(0.0005507679) #pulled from var_b
+t_stat <- b[3] / sd_b11
+t_crit <- qt(0.995, df = 27-3)
+```
+```{r}
+print(t_stat)
+print(t_crit)
+```
+Since |t_stat| < t_crit we can reject the null hypothesis
+
+## 8.6f
+```{r, echo=FALSE}
+fit <- lm(Y ~ X + I(X^2), data = ster_data)
+```
+y = -26.3254 + 4.8736X - 0.1184X^2
+
+## 8.24a
+```{r, echo=FALSE}
+price_data <- read.table("sta108/hw5/CH08PR24.txt", header=TRUE)
+plot(price_data$X1[price_data$X2 == 1],
+     price_data$Y[price_data$X2 == 1],
+     xlab = "X1",
+     ylab = "Y",
+     main = "Scatter Plot for X2 == 1")
+
+plot(price_data$X1[price_data$X2 == 0],
+     price_data$Y[price_data$X2 == 0],
+     xlab = "X1",
+     ylab = "Y",
+     main = "Scatter Plot for X2 == 0")
+
+```
+The regression relation between corner lots and selling price is less distinct than non-corner lots and selling price
+
+## 8.24b
+null = B2 = B3 = 0
+
+alt = B2 or B3 != 0
+```{r, echo=FALSE}
+fit_full <-lm(Y~ X1 + X2 + X1*X2, data=price_data)
+fit_red <- lm(Y~X1, data=price_data)
+print(fit$coefficients)
+SSE_red <- anova(fit_red)[2,2]
+SSE_full <- anova(fit_full)[4,2]
+
+f_stat <- ((SSE_red-SSE_full)/2)/(SSE_full/60)
+f_crit <- qf(0.05, 2, 60,lower.tail = FALSE)
+```
+```{r}
+print(f_stat)
+print(f_crit)
+```
+Since Fstat is larger than Fcrit, reject null hypothesis
+
+## 8.24c
+```{r, echo=FALSE}
+fit_noncorner <- lm(Y[X2==0] ~ X1[X2==0], data=price_data)
+fit_corner <- lm(Y[X2==1] ~ X1[X2==1], data=price_data)
+```
+```{r}
+print(fit_noncorner)
+print(fit_corner)
+job_data <- read.table('sta108/hw5/CH09PR10.txt', header=TRUE)
+```
+
+## 9.10a
+```{r}
+stem(job_data$X1)
+stem(job_data$X2)
+stem(job_data$X3)
+stem(job_data$X4)
+```
+X1 seems to have a larger variance in its distribution.
+
+X2 has a slight left skew to its distribution on the stem and leaf plot
+
+X3 seems to have the most normal distribution
+
+Nothing to note for X4
+
+
+## 9.10b
+```{r}
+plot(job_data)
+print(cor(job_data))
+```
+Little correlation: X1 and X2, X4 and X2, X4 and X1, Y and X2
+
+Larger correlation: X1 and Y, X3 and Y, X4 and Y, X4 and X3, X3 and X1
+
+Multicollinearity problem: X4 and X3, X3 and X1. These 2 sets of explanatory variables
+both have a positive linear relationship
+
+## 9.10c
+```{r, echo=FALSE}
+fit_full <- lm(Y ~ X1 + X2 + X3 + X4, data=job_data)
+print(fit_full$coefficients)
+```
+Since X2 has quite a low coefficient compared to other explanatory variables it could be argued that X2 can be dropped from a model
+
+## 9.11a
+```{r, echo=FALSE}
+models <- regsubsets(Y ~ X1 + X2 + X3 + X4, data = job_data, 
+                          nbest = 4, nvmax = 4, method = "exhaustive")
+model_summaries <- summary(models)
+print(model_summaries$adjr2)
+```
+models 5, 9, 10, 13 in model_summaries$adjr2 (above output)
+
+X1+X3, X1+X3+X4, X1+X2+X3, X1+X2+X3+X4 are the best models based off of R^2a,p
+
+## 9.11b
+You can use other model selection criteria, Akaikes FPE, Mallows' Cp, AIC, or SBC.
+
+These incorporate different variables that can create points of reference for a decision to choose a good model.
+## 9.18a
+```{r, echo=FALSE}
+fit_red <- lm(Y ~ 1, data = job_data)
+step_model <- step(fit_red, 
+                   scope = list(lower = fit_red, upper = fit_full),
+                   direction = "forward", 
+                   trace = TRUE)
+print(summary(step_model))
+```
+The end model that was chosen via AIC was X3+X1
+
+## 9.16b
+X1+X3 has the third highest partial coefficient of determination
+
+### R Code Appendix (will automatically list all code used)
+
+```{r, ref.label=knitr::all_labels(), eval=FALSE}
+```
