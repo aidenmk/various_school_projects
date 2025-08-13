@@ -15,10 +15,10 @@ class Bakery:
     def stock_bakery(self, items):
         for item in items:
             # utilize type matching to determine if item is muffin or drink
-            if str(type(item)) == "<class 'muffin.Muffin'>":
+            if type(item) == Muffin:
                 self.muffin_menu[item.flavor] = f'${item.price:.2f}'
                 self.display_case.append(item)
-            elif str(type(item)) == "<class 'drink.Drink'>":
+            elif type(item) == Drink:
                 #adding item.type for autograder
                 self.drink_menu[f'{item.size} {item.type}'] = f'${item.price:.2f}'
                 self.display_case.append(item)
@@ -29,7 +29,7 @@ class Bakery:
             if order_item in str(item): #use custom str method to our advantage to determine if item matches
 
                 #determine whether muffin or drink object
-                if str(type(item)) == "<class 'muffin.Muffin'>":
+                if type(item) == Muffin:
                     self.sales.append(item.flavor)
                     #remove dollar sign in muffin_menu value str and then make it float so we can add
                     self.money += float(self.muffin_menu[order_item][1:])
@@ -37,7 +37,8 @@ class Bakery:
                     self.display_case.remove(item)
                     del self.muffin_menu[order_item]
 
-                elif str(type(item)) == "<class 'drink.Drink'>":
+
+                elif type(item) == Drink:
                     self.sales.append(item.type)
                     self.money += float(item.price)
                     print(f"Order filled: {item.size} {item.type}. Price: ${item.price:.2f}")
