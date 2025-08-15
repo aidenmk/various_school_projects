@@ -1,0 +1,381 @@
+---
+title: "Aiden Kutney STA 106, Homework 2, R Portion"
+output: html_document
+---
+
+# Aiden Kutney
+# R part 1
+
+# 1a
+```{r, echo=FALSE}
+give.me.power <-  function(ybar,ni,MSE,alpha){
+  a = length(ybar) # Finds a
+  nt = sum(ni) #Finds the overall sample size
+  overall.mean = sum(ni*ybar)/nt # Finds the overall mean
+  phi = (1/sqrt(MSE))*sqrt( sum(ni*(ybar - overall.mean)^2)/a) #Finds the books value of phi
+  phi.star = a *phi^2 #Finds the value of phi we will use for R
+  Fc = qf(1-alpha,a-1,nt-a) #The critical value of F, use in R's function
+  power = 1 - pf(Fc, a-1, nt-a, phi.star)# The power, calculated using a non-central F
+  return(power)
+}
+
+cancer <- read.csv("./Cancer.csv")
+group.means = by(cancer$Survival,cancer$Organ,mean)
+group.nis = by(cancer$Survival,cancer$Organ,length)
+the.model = lm(Survival ~ Organ, data = cancer)
+anova.table = anova(the.model)
+MSE = anova.table[2,3]
+
+give.me.power(group.means,group.nis,MSE,0.05)
+```
+As seen above the power of the test is 0.9853726
+
+# 1b
+```{r, echo=FALSE}
+library(pwr)
+overall.mean = sum(group.means*group.nis)/sum(group.nis)
+effect.size = sqrt( sum( group.nis/sum(group.nis) *(group.means -overall.mean)^2 )/MSE)
+pwr.anova.test(k = 5, f = effect.size, sig.level = 0.05, power = 0.99)
+
+
+```
+Smallest sample size would be 14
+
+# 1c
+```{r, echo=FALSE}
+pwr.anova.test(k = 5, f = effect.size, sig.level = 0.01, power = 0.99)
+
+```
+Smallest sample size would be 18
+
+# 1d
+When the F statistic is very large we expect the power of the test to be large.
+The power of a test is the probability of rejecting the null hypothesis when the 
+alternative is true. When the F stat is very large, the p value is very small
+therefore it does not border the alpha level.
+
+If the p value is border line with alpha level, the power of test is lower. In
+general the farther away the p value is from the alpha level (on the less than 
+side of the alpha level), the higher the power of tests.
+
+# 2a
+```{r, echo=FALSE}
+give.me.CI = function(ybar,ni,ci,MSE,multiplier){
+  if(sum(ci) != 0 & sum(ci !=0 ) != 1){
+    return("Error - you did not input a valid contrast")
+  } else if(length(ci) != length(ni)){
+    return("Error - not enough contrasts given")
+  }
+  else{
+    estimate = sum(ybar*ci)
+    SE = sqrt(MSE*sum(ci^2/ni))
+    CI = estimate + c(-1,1)*multiplier*SE
+    result = c(estimate,CI)
+    names(result) = c("Estimate","Lower Bound","Upper Bound")
+    return(result)
+  }
+}
+#Stomach, Bronchus, Colon, Ovary, Breast
+#5        2         3      4      1     (alphabetical order of Organ)
+
+t.value = qt(1-0.05/2, sum(group.nis) - length(group.nis))
+ci <- c(0, -1, 0, 0, 1) #stomach mean - bronchus mean
+give.me.CI(group.means,group.nis,ci,MSE,t.value)
+
+
+```
+Above is ci for stomach mean - bronchus mean. 
+
+# 2b
+This CI suggests a non significant difference in means since the CI contains zero -> thus meaning that were are 95% confident the difference of stomach mean - bronchus mean is between -419.2 and 568.0 
+
+#2c
+```{r, echo=FALSE}
+#Stomach, Bronchus, Colon, Ovary, Breast
+#5        2         3      4      1     (alphabetical order of Organ)
+
+t.value = qt(1-0.05/2, sum(group.nis) - length(group.nis))
+ci <- c(0, -.5, 1, 0, -.5) #colon mean - 1/2stomach mean - 1/2bronchus mean
+give.me.CI(group.means,group.nis,ci,MSE,t.value)
+```
+Above is the ci for colon mean - 1/2 stomach mean - 1/2 bronchus mean
+
+# 2d
+Since the ci contains zero, there is no significant difference in survival time means. We are 95% confident that the difference of means between the colon cancer group and group stomach and bronchus cancer is -199.4183 and 616.6536.
+
+# 3a
+null: means are all equal
+
+alt: one or more mean is different from the others
+```{r, echo=FALSE}
+green <- read.csv('./Green.csv')
+result <- aov(weight ~ group, data = green)
+summary(result)
+```
+The above p value is 0.0159. Since p value < alpha(.05) reject null hypothesis. That means one or more mean is different from the others.
+
+# 3b
+```{r, echo=FALSE}
+group.means = by(green$weight, green$group,mean)
+gammai <- group.means - mean(group.means)
+gammai
+```
+Above is gamma i's of the green data.
+
+# 3c
+The power is a probability that we correctly reject the hypothesized fact that the average weight of the plant of each treatment and control group is equal when it is indeed false.
+
+# 3d
+.90 is the probability that if the groups means are equal we will no reject the null.
+
+# 4a
+```{r, echo=FALSE}
+group.means = by(green$weight,green$group,mean)
+group.nis = by(green$weight,green$group,length)
+the.model = lm(weight ~ group, data = green)
+anova.table = anova(the.model)
+MSE = anova.table[2,3]
+
+give.me.power(group.means,group.nis,MSE,0.10)
+
+```
+The power is above for .10 alpha level.
+
+# 4b
+```{r, echo=FALSE}
+overall.mean = sum(group.means*group.nis)/sum(group.nis)
+effect.size = sqrt( sum( group.nis/sum(group.nis) *(group.means -overall.mean)^2 )/MSE)
+pwr.anova.test(k = 5, f = effect.size, sig.level = 0.05, power = 0.99)
+```
+Sample size would need to be 17 for a power of .99 at a alpha level of 0.05
+
+# 4c
+To increase power of the test, we can increase sample size.
+
+# 4d
+ci of: 1/2 control mean + 1/2 treatment1 mean - treatment2 mean
+```{r, echo=FALSE}
+t.value = qt(1-0.05/2, sum(group.nis) - length(group.nis))
+ci <- c(.5, .5, -1) 
+give.me.CI(group.means,group.nis,ci,MSE,t.value)
+```
+Above is 95% CI.
+
+# 4e
+At the 95% CI level, we can say that the difference of the groups, control and treatment1, and treatment 2 is between -.6795 and -.1841 meaning that they are significantly different.
+
+# Book Part 2
+# 1a
+```{r, echo=FALSE}
+cancer <- read.csv("./Cancer.csv")
+model = lm(Survival ~ Organ,data = cancer)
+plot(model, which=1)
+plot(model, which=2)
+```
+Yes 2 assumptions of ANOVA have been broken, normal distribution for residuals and equal variance of residuals between groups which are both not present in this data.
+
+# 1b
+```{r, echo=FALSE}
+nt = nrow(cancer)
+a = length(unique(cancer$Organ)) #
+t.cutoff= qt(1-.01/(2*nt), nt-a)
+rij = rstandard(model)
+CO.rij = which(abs(rij) > t.cutoff)
+CO.rij
+
+cancer$ei = model$residuals
+SSE = sum(cancer$ei^2) #Sums and squares the errors (finds SSE)
+MSE = SSE/(nt-a) #Finds MSE
+eij.star = model$residuals/sqrt(MSE)
+t.cutoff= qt(1-.01/(2*nt), nt-a)
+CO.eij = which(abs(eij.star) > t.cutoff)
+CO.eij
+```
+There are no cases of outliers when using the standardized approach with alpha = 0.01
+
+# 1c
+```{r, echo=FALSE}
+ei = model$residuals
+the.SWtest = shapiro.test(ei)
+the.SWtest
+
+```
+The P value is stated above
+
+# 1d
+```{r, echo=FALSE}
+library(car)
+the.BFtest = leveneTest(ei~ Organ, data=cancer, center=median)
+p.val = the.BFtest[[3]][1]
+p.val
+
+```
+The above number is the p value for the Brown-Forsythe test.
+
+# 1e
+Since the outlier producing method did not indicate any outliers were present,
+we did not remove any outliers.
+
+# 2a
+```{r, echo=FALSE}
+library(EnvStats)
+
+L1 =boxcox(model ,objective.name = "PPCC",optimize = TRUE)$lambda
+L2 = boxcox(model ,objective.name = "Shapiro-Wilk",optimize = TRUE)$lambda
+L3 = boxcox(cancer$Survival,objective.name = "Log-Likelihood",optimize = TRUE)$lambda
+lambdas = c(L1, L2, L3)
+lambdas
+
+```
+In order, the lambdas above are obtained from methods: PPCC, Shapiro-Wilkes,
+and Log-Likelihood. We will use shapiro-wilkes since that is what is suggested
+in HW problem
+
+# 2b
+```{r, echo=FALSE}
+YT = (cancer$Survival^(L2)-1)/L2
+t.data = data.frame(Survival = YT, Organ = cancer$Organ)
+t.model = lm(Survival ~ Organ,data = t.data)
+plot(t.model, which=1)
+plot(t.model, which=2)
+```
+The above is the transformed model
+
+Below is the non transformed model with original data
+```{r, echo=FALSE}
+plot(model, which=1)
+plot(model, which=2)
+```
+As can be seen, the transformed data has equal variance between groups and a normal distribution
+
+# 2c
+```{r, echo=FALSE}
+ei = t.model$residuals
+the.SWtest = shapiro.test(ei)
+the.SWtest
+```
+Here is p value of SW for transformed data model
+
+# 2d
+```{r, echo=FALSE}
+the.BFtest = leveneTest(ei~ Organ, data=t.data, center=median)
+p.val = the.BFtest[[3]][1]
+p.val
+```
+Above is the p value for BF for transformed data model
+
+# 2e
+### Transformed Data SFA
+Hypothesis:
+
+null: all means survival for organ cancer type is equal
+
+alt: one or more mean survival is different from another mean
+```{r, echo=FALSE}
+result <- aov(Survival ~ Organ, data = t.data)
+summary(result)
+```
+P value listed above
+### Non Transformed Data SFA
+Same hypothesis of above for SFA
+```{r, echo=FALSE}
+result <- aov(Survival ~ Organ, data = cancer)
+summary(result)
+```
+P value listed above
+
+I believe that the transformed data gives us a more reliable p value due to having 
+more normalized residuals and more equal variance of residuals between groups.
+
+# 3a
+```{r, echo=FALSE}
+trap <- read.csv('./Traps.csv')
+boxplot(trap$Moth ~ trap$Location, main = "Moths in Trap at Location",ylab = "Moths Trapped")
+boxplot(trap$Moth ~ trap$Bait, main = "Moths in Trap With Bait Use",ylab = "Moths Trapped")
+interaction.plot(
+  x.factor = trap$Location,
+  trace.factor = trap$Bait,
+  response = trap$Moth,
+  fun = mean,                 # mean is default, but you can change
+  type = "b",                 # points and lines
+  col = c("red", "blue", "darkgreen"),
+  ylab = "Mean number of moths",
+  xlab = "Location",
+  trace.label = "Bait"
+)
+```
+Since I am unsure how to do interaction plots, here are some box plots. Baits
+sugar and scent seem to increase moths trapped. Lower and middle location
+have more moths trapped. I did however use chatgpt at a later time to get that 
+interaction plot
+
+# 3b
+```{r, echo=FALSE}
+aggregate(Moth ~ Location, data=trap, mean)
+```
+# 3c
+```{r, echo=FALSE}
+aggregate(Moth ~ Bait, data=trap, mean)
+```
+
+# 3d
+```{r, echo=FALSE}
+aggregate(Moth ~ Location + Bait, data = trap, mean)
+```
+# 3e
+```{r, echo=FALSE}
+result <- aov(Moth ~ Location, data = trap)
+summary(result)
+```
+As seen above the p value for location is very low indicating the null hypothesis
+(all means for moth are =) is rejected. That means that the number of moths trapped
+via location are different.
+
+
+# 4a
+```{r, echo=FALSE}
+rat <- read.csv("./rat.csv")
+interaction.plot(
+  x.factor = rat$Type,
+  trace.factor = rat$Amount,
+  response = rat$Weight,
+  fun = mean,                 # mean is default, but you can change
+  type = "b",                 # points and lines
+  col = c("red", "blue", "darkgreen"),
+  ylab = "Weight Change in Rats in Grams",
+  xlab = "Type of Food",
+  trace.label = "Amount of Food"
+)
+```
+As amount of food is high, it leads to higher weight change in rats. 
+However, High amounts of pork and beef lead to especially high weight change
+
+# 4b
+I am going to assume this is for weight means by type.
+```{r}
+aggregate(Weight ~ Type, data=rat, mean)
+```
+
+# 4c
+```{r}
+aggregate(Weight~Amount, data=rat, mean)
+```
+
+# 4d
+```{r}
+aggregate(Weight ~ Amount + Type, data = rat, mean)
+```
+
+# 4e
+```{r}
+result <- aov(Weight ~ Type, data = rat)
+summary(result)
+```
+Since the p value is large for this SFA comparing mean weight change between groups in 
+the food Type category, we can say that there is not a significant change in weight
+change means. Therefore weight gain is not different for type of food.
+
+### R Code Appendix (will automatically list all code used)
+
+```{r, ref.label=knitr::all_labels(), eval=FALSE}
+```
