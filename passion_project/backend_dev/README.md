@@ -9,5 +9,8 @@ Since I am learning by doing, I realized that USDA actually has an api and I did
 
 Anywho, check out bootstrapplant.py if you want to see the self created database being made. I have yet to tune up the conditionals in that file to find a realistic watering interval. I hope to get it working soon so that way I have data to train up (and learn more about) a supervised or unsupervised model.
 
-Future plans are to create an frontend with a bonsai tree watering tracker for a mobile app.
+Another portion I've been working on that is not published here is setting up an api using aws lambda to relay info from backend to frontend.
+
+Future plans are to create a mobile app.
+
 
